@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        run: |
+          version=$(grep -m1 '^version = ' probe/Cargo.toml | cut -d '"' -f2)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match probe/Cargo.toml version $version" >&2
+            exit 1
+          fi
+          grep -q "^## \[$version\]" CHANGELOG.md || { echo "CHANGELOG.md has no $version section" >&2; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-pc-windows-msvc, os: windows-latest, name: osd-probe-windows-x64.exe }
+          - { target: aarch64-pc-windows-msvc, os: windows-latest, name: osd-probe-windows-arm64.exe }
+          - { target: x86_64-apple-darwin, os: macos-latest, name: osd-probe-macos-x64 }
+          - { target: aarch64-apple-darwin, os: macos-latest, name: osd-probe-macos-arm64 }
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04, name: osd-probe-linux-x64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update && sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install --no-install-recommends -y libudev-dev
+      - working-directory: probe
+        run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Rename
+        shell: bash
+        run: |
+          mkdir out
+          ext=""
+          [[ "${{ matrix.target }}" == *windows* ]] && ext=".exe"
+          cp "probe/target/${{ matrix.target }}/release/osd-probe$ext" "out/${{ matrix.name }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: out/${{ matrix.name }}
+
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: cd dist && sha256sum osd-probe-* > SHA256SUMS && cat SHA256SUMS
+      - name: Notes
+        run: |
+          awk -v v="${{ needs.version.outputs.version }}" '
+            index($0, "## [" v "]") == 1 { on = 1; next }
+            on && /^## / { exit }
+            on && !/^\[[^]]+\]: / { print }
+          ' CHANGELOG.md > notes.md
+          cat notes.md
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "osd-probe v${{ needs.version.outputs.version }}" \
+            --notes-file notes.md \
+            --verify-tag

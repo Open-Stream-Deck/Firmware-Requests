@@ -1,0 +1,57 @@
+name: Запросить прошивку / Request firmware
+description: Прошивка Open Stream Deck для новой модели деки. Firmware for a new deck model.
+title: "[Запрос] "
+labels: [firmware-request]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Сначала запустите утилиту `osd-probe` по [инструкции](https://github.com/Open-Stream-Deck/Firmware-Requests#запросить-прошивку-для-своей-деки): она создаст файл `osd-report-*.json`. Без него написать прошивку не получится.
+
+        Run `osd-probe` first ([instructions](https://github.com/Open-Stream-Deck/Firmware-Requests#english)); it creates an `osd-report-*.json` file we need.
+  - type: input
+    id: model
+    attributes:
+      label: Модель / Model
+      description: Бренд и модель, как на коробке или наклейке. Brand and model as on the box or label.
+      placeholder: AJAZZ AKP153E
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Ссылка на товар / Product link
+      description: Страница в магазине или на сайте производителя. Shop or vendor page.
+  - type: textarea
+    id: report
+    attributes:
+      label: Отчёт osd-probe / osd-probe report
+      description: |
+        Перетащите сюда файл `osd-report-*.json`. Если GitHub не принимает файл, упакуйте его в ZIP.
+        Drag the `osd-report-*.json` file here. If GitHub rejects it, zip it first.
+    validations:
+      required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Фото / Photos
+      description: |
+        Спереди, сзади, наклейка с моделью. Если вскрывали — плата с обеих сторон, чтобы читалась маркировка чипов.
+        Front, back, model label. If opened — both sides of the board with readable chip markings.
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Дополнительно / Details
+      description: |
+        Программа производителя и её версия, особенности деки, способ войти в режим обновления, если знаете.
+        Vendor software and version, deck features, how to enter update mode if you know.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Проверка / Checks
+      options:
+        - label: Прошивки для этой модели нет в README, похожего запроса ещё нет. There is no firmware or existing request for this model.
+          required: true
+        - label: Готов проверить тестовую прошивку на своей деке. I can test a firmware build on my deck.

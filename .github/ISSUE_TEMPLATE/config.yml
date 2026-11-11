@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ошибка в готовой прошивке / Bug in existing firmware
+    url: https://github.com/Open-Stream-Deck/
+    about: Сообщайте об ошибках в репозитории прошивки. Report bugs in the firmware's own repository.
+  - name: Документация / Documentation
+    url: https://wiki.opensd.dev
+    about: Вики Open Stream Deck. Open Stream Deck wiki.

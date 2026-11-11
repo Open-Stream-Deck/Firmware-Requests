@@ -1,0 +1,43 @@
+name: Предложить прошивку / Submit firmware
+description: Поделитесь своей прошивкой для деки. Share your own deck firmware.
+title: "[Прошивка] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Написали прошивку для своей деки? Расскажите о ней. После проверки мы скопируем репозиторий в организацию Open Stream Deck, сохранив лицензию и указав автора.
+
+        Built firmware for your deck? Share it here. After review, we will copy the repository into the Open Stream Deck organization, keeping its license and crediting the author.
+  - type: input
+    id: model
+    attributes:
+      label: Модель / Model
+      description: Бренд, модель и ревизия устройства, если известна. Brand, model and hardware revision, if known.
+      placeholder: AJAZZ AKP153R
+    validations:
+      required: true
+  - type: textarea
+    id: testing
+    attributes:
+      label: Что проверено / What has been tested
+      description: |
+        На каком устройстве проверяли, что работает и какие есть ограничения или известные проблемы.
+        Which device you tested on, what works, and any limitations or known issues.
+      placeholder: Кнопки, экран, подсветка, установка / Buttons, display, backlight, firmware installation
+    validations:
+      required: true
+  - type: input
+    id: repository
+    attributes:
+      label: Ссылка на репозиторий / Repository link
+      description: Публичный репозиторий с исходниками и лицензией. Public repository with source code and license.
+      placeholder: https://github.com/username/firmware
+    validations:
+      required: true
+  - type: checkboxes
+    id: permission
+    attributes:
+      label: Согласие / Permission
+      options:
+        - label: Я автор прошивки или имею право её предоставить. Разрешаю скопировать репозиторий в Open Stream Deck с сохранением лицензии и указанием автора. I am the firmware author or have permission to submit it. I agree to the repository being copied into Open Stream Deck with its license preserved and the author credited.
+          required: true
